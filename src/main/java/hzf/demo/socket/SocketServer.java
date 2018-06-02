@@ -21,7 +21,7 @@ public class SocketServer
     {
         try
         {
-            ServerSocket server = new ServerSocket(8080);
+            ServerSocket server = new ServerSocket(8000);
             while (true)
             {
                 Socket client = server.accept();
