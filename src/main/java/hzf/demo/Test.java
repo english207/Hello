@@ -4,10 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +36,10 @@ public class Test
         System.out.println(b.hashCode());
 
         System.out.println(a.equals(b));
+
+        BitSet bitSet = new BitSet(10);
+        bitSet.set(1);
+        bitSet.get(1);
 
     }
 

@@ -30,6 +30,14 @@
             <version>2.10.4</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.roaringbitmap/RoaringBitmap -->
+        <dependency>
+            <groupId>org.roaringbitmap</groupId>
+            <artifactId>RoaringBitmap</artifactId>
+            <version>0.6.66</version>
+        </dependency>
+
+
     </dependencies>
 
 </project>
