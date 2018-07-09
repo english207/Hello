@@ -6,6 +6,18 @@ package hzf.demo.imitate;
  */
 public abstract class Container implements Iterable<Short>, Cloneable
 {
+    public static final int len = 6;
+    public static int[] whereIdx = new int[32];
+    static
+    {
+        int l = 0;
+        for (int i = 0; i < 32; i++)
+        {
+            l |= l + ((1 << i - 1) & 2147483647);
+            whereIdx[i] = l;
+        }
+    }
+
     public abstract void add(final short x);
 
     public abstract void remove(short x);

@@ -14,19 +14,9 @@ public class DynScaleBitmapContainer extends Container
 {
     private long[] keys = null;
     private long[] array = null;     // 1024个
-    private short cardinality = 0;
+    private int cardinality = 0;
 
-    private static final int len = 6;
-
-    private static int[] whereIdx = new int[32];
-    static
-    {
-        int l = 0;
-        for (int i = 0; i < 32; i++)
-        {
-            l |= l + ((1 << i - 1) & 2147483647);
-            whereIdx[i] = l;
-        }
+    public DynScaleBitmapContainer() {
     }
 
     @Override
@@ -45,7 +35,76 @@ public class DynScaleBitmapContainer extends Container
     }
 
     @Override
-    public void remove(short x) {
+    public void remove(short x)
+    {
+        if (keys == null) {
+            return;
+        }
+        int unsigned = toIntUnsigned(x);
+        int idx = unsigned >> len;  // 除以 64
+        int idx_k = idx >> 5;       // 除以 32
+        long key = keys[idx_k];
+
+        long high = key >> 32;
+
+        if (high == 0) {
+            return ;
+        }
+
+        int k_offset = idx - idx_k * 32;
+
+        boolean exist = (high & 1l << k_offset) != 0;
+
+        if (!exist) {
+            return;
+        }
+
+        long low = key & 4294967295l;       // 低位代表前面有多少个1，也就是代表着前面起码有low个数
+        low += Long.bitCount(high & whereIdx[k_offset]);
+
+        long p = array[(int) low];
+        long dataTmp = 1l << (unsigned % 64);
+        long resultTmp = p & dataTmp;
+        long result = p & (~resultTmp);
+
+        if (result == p) {   // 没变化，即本来位置上就没有对应的位
+            return;
+        }
+        array[((int) low)] = result;    // 将对应位修改成对应数字
+        if (result == 0)                            // 清除之后当前位上已经没有数了
+        {
+            long[] newArray = new long[array.length - 1];
+            if (low == 0)                           // head
+            {
+                System.arraycopy(this.array, 1, newArray, 0, (array.length - 1));
+            }
+            else if (low == array.length - 1)       // tail
+            {
+                System.arraycopy(this.array, 0, newArray, 0, (array.length - 1));
+            }
+            else
+            {
+                System.arraycopy(this.array, 0, newArray, 0, (int) low);
+                System.arraycopy(this.array, (int) (low + 1), newArray, (int) low, (int) (array.length - low - 1));
+            }
+            this.array = newArray;
+
+            // 接下来处理清除成功之后的变化   1，修改key，2，移动array的位置
+            long keyTmp = key & (1l << (k_offset + 32));
+            long key_result = key & (~keyTmp);
+            keys[idx_k] = key_result;
+
+            for (int i = idx_k + 1 ; i < 32 ; i ++)
+            {
+                keys[i] -= 1;
+            }
+        }
+        cardinality --;
+
+        if (cardinality == 0) {
+            this.keys = null;
+            this.array = null;
+        }
 
     }
 
@@ -141,7 +200,8 @@ public class DynScaleBitmapContainer extends Container
 
     public int getSizeInBytes()
     {
-        return (keys != null ? keys.length * 8 : 0) + (array != null ? array.length * 8 : 0);
+        int size = (keys != null ? keys.length * 8 : 0) + (array != null ? array.length * 8 : 0);
+        return size + 4;
     }
 
     private Container checkIsEmpty(DynScaleBitmapContainer dsbc, int op)
@@ -337,7 +397,7 @@ public class DynScaleBitmapContainer extends Container
                 }
             }
 
-            low_size += idx;
+            low_size += Long.bitCount(newKeys[i] >>> 32);
             int l = i + 1;
             if (l < 32) {
                 newKeys[l] = newKeys[l] + low_size;
@@ -472,10 +532,10 @@ public class DynScaleBitmapContainer extends Container
 
     @Override
     public Iterator<Short> iterator() {
-        return new DynScaleBitmapContainerIterator2();
+        return new DynScaleBitmapContainerIterator();
     }
 
-    class DynScaleBitmapContainerIterator2 implements Iterator<Short>
+    class DynScaleBitmapContainerIterator implements Iterator<Short>
     {
         private long[] _keys;
         private long[] _array;
@@ -488,7 +548,7 @@ public class DynScaleBitmapContainer extends Container
         private int key_loop_idx = -1;
         private long high;
 
-        private DynScaleBitmapContainerIterator2()
+        private DynScaleBitmapContainerIterator()
         {
             if (keys == null)
             {
@@ -565,147 +625,7 @@ public class DynScaleBitmapContainer extends Container
         }
 
         @Override
-        public void remove()
-        {
-
-        }
-
-    }
-
-
-    class DynScaleBitmapContainerIterator implements Iterator<Short>
-    {
-        private long[] _keys;
-        private long[] _array;
-        private short _cardinality = cardinality;
-
-        private long data = 0;
-        private short data_loop = -1;
-        private int dataCount = -1;
-        private int findSize = 0;
-
-        private int array_idx = -1;
-        private int key_idx = 0;
-        private int key_loop_idx = 0;
-        private long high;
-
-        public DynScaleBitmapContainerIterator() {
-
-            if (keys == null)
-            {
-                this._keys = new long[32];
-                this._array = null;
-            }
-            else
-            {
-                this._keys = keys.clone();
-                this._array = array.clone();
-            }
-
-            nextKey();
-//            nextData();
-        }
-
-        @Override
-        public boolean hasNext()
-        {
-            if (data_loop == 64 || dataCount == findSize)
-            {
-                key_loop_idx++;
-                nextData();
-            }
-            else
-            {
-                data_loop++;
-            }
-            return _cardinality != 0;
-        }
-
-        @Override
-        public Short next()
-        {
-            short result = -1;
-            for (; data_loop < 64;)
-            {
-                if ( (data & 1l << data_loop) != 0 )
-                {
-                    result = (short)( (key_idx)  * 2048 + key_loop_idx * 64  + data_loop);
-                    findSize ++;
-                    _cardinality --;
-                    break;
-                }
-                else
-                {
-                    data_loop++;
-                }
-            }
-
-            if (result == -1)
-            {
-                System.out.println("xxxxx");
-            }
-
-            return result;
-        }
-
-        @Override
         public void remove() {
-
-        }
-
-        private void nextData()
-        {
-            for (; key_loop_idx < 32; )
-            {
-                if ((high & 1l << key_loop_idx) != 0)
-                {
-                    array_idx ++;
-                    data = _array[array_idx];
-                    dataCount = Long.bitCount(data);
-                    findSize = 0;
-                    data_loop = -1;
-                    break;
-                }
-
-                key_loop_idx++;
-            }
-            if (key_loop_idx == 32) {
-                key_idx++;
-                nextKey();
-            }
-        }
-
-        private void nextKey()
-        {
-            while (key_idx < 32)
-            {
-                this.high = _keys[key_idx] >> 32 & 4294967295l;
-                if (high != 0)
-                {
-                    key_loop_idx = 0;
-                    data_loop = -1;
-
-                    for (; key_loop_idx < 32; )
-                    {
-                        if ((high & 1l << key_loop_idx) != 0)
-                        {
-                            array_idx ++;
-                            data = _array[array_idx];
-                            dataCount = Long.bitCount(data);
-                            findSize = 0;
-                            data_loop = -1;
-                            break;
-                        }
-                        key_loop_idx++;
-                    }
-
-                    break;
-                }
-                else
-                {
-                    key_idx++;
-                }
-            }
         }
     }
 
@@ -718,7 +638,7 @@ public class DynScaleBitmapContainer extends Container
         Iterator<Short> iterator = iterator();
         while (iterator.hasNext())
         {
-            sb.append(iterator.next());
+            sb.append(iterator.next() & 0xFFFF);
             sb.append(",");
         }
 
@@ -731,80 +651,27 @@ public class DynScaleBitmapContainer extends Container
         return sb.toString();
     }
 
-    public static void main(String[] args) {
-
-//        DynScaleBitmapContainer container1 = new DynScaleBitmapContainer();
-//        DynScaleBitmapContainer container2 = new DynScaleBitmapContainer();
-//
-//        Set<Integer> words = new HashSet<Integer>();
-//        Set<Integer> exist = new HashSet<Integer>();
-//        for (int i = 0; i < 50000; i++)
-//        {
-//            int word = Double.valueOf(Math.abs(Math.random()) * 65535).intValue();
-//            container1.add((short) word);
-//            words.add(word);
-//        }
-//
-//        for (int i = 0; i < 5000; i++)
-//        {
-//            int word = Double.valueOf(Math.abs(Math.random()) * 65535).intValue();
-//            container2.add((short) word);
-//            if (words.contains(word))
-//            {
-//                exist.add(word);
-//            }
-//        }
-//
-//        DynScaleBitmapContainer container3 = (DynScaleBitmapContainer) container2.and(container1);
-//
-//        for (Integer word : exist)
-//        {
-//            if ( !container3.contain(word.shortValue()) )
-//            {
-//                System.out.println(String.format("word [%s] is not exist", word));
-//            }
-//        }
-
-
-//        DynScaleBitmapContainer container = new DynScaleBitmapContainer();
-//
-//        container.add((short) 3);
-//        container.add((short) 4);
-//        container.add((short) 170);
-//        container.add((short) 7586);
-//        container.add((short) 58554);
-//
-//        DynScaleBitmapContainer container2 = new DynScaleBitmapContainer();
-//        container2.add((short) 3);
-//        container2.add((short) 7586);
-//        container2.add((short) 5);
-//
-//        DynScaleBitmapContainer container3 = (DynScaleBitmapContainer) container.andNot(container2);
-//
-//        System.out.println(container3.cardinality());
-//
-//
-//        long l = 2;
-//        long l2 = 3;
-//        System.out.println(Long.toBinaryString(l));
-//        System.out.println(Long.toBinaryString(l2));
-//        System.out.println(Long.toBinaryString(~l));
-
-
+    public static void main(String[] args)
+    {
+        long start = System.currentTimeMillis();
         DynScaleBitmapContainer container = new DynScaleBitmapContainer();
         container.add((short) 3);
         container.add((short) 4);
         container.add((short) 6844);
         container.add((short) 16844);
+        container.add((short) 56844);
         container.add((short) 4);
         container.add((short) 170);
-
-        System.out.println(container.contain((short) 170));
+        container.add((short) 125);
 
         System.out.println(container.toString());
 
+        container.remove((short) 6844);
+        container.remove((short) 6845);
 
+        System.out.println(container.toString());
 
+        System.out.println(System.currentTimeMillis() - start);
     }
 
 
