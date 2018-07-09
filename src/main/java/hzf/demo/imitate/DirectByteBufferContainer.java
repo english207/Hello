@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 /**
- * Created by huangzhenfeng on 2018/7/9.
+ * Created by hzf on 2018/7/9.
  *
  *      堆外内存bitmapContainer
  *      优点是大对象能减轻JVM GC压力

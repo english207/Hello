@@ -6,7 +6,7 @@ import java.nio.channels.FileChannel;
 import java.util.Iterator;
 
 /**
- * Created by huangzhenfeng on 2018/7/2.
+ * Created by hzf on 2018/7/2.
  *
  */
 public class FileBitmapContainer extends Container

@@ -6,7 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * Created by huangzhenfeng on 2018/6/11.
+ * Created by hzf on 2018/6/11.
  *
  *      动态伸缩bitmap
  */
