@@ -97,16 +97,17 @@ public class DirectByteBufferContainer extends Container
             if (limit == capacity)
             {
                 ByteBuffer newBuffer = ByteBuffer.allocateDirect(capacity + 4 * 8);
+                ByteBuffer old = this.buffer;
+                this.buffer.position(0);
                 this.buffer = newBuffer.put(buffer);
-                this.buffer.limit(limit);
+                this.buffer.limit(limit + 8);
+                clean(old);
+            }
+            else
+            {
+                this.buffer.limit(limit + 8);
             }
 
-            this.buffer.position(0);
-            this.buffer.limit(low);
-            ByteBuffer buffer1 = (ByteBuffer) buffer.flip();
-
-            ByteBuffer oldBuffer = this.buffer;
-            clean(oldBuffer);
         }
         else if (low < limit)       // 从中间往后移动
         {
@@ -236,12 +237,30 @@ public class DirectByteBufferContainer extends Container
     {
         DirectByteBufferContainer container = new DirectByteBufferContainer();
 
+        long start = System.nanoTime();
         container.add((short) 67);
         container.add((short) 5);
+        container.add((short) 544);
+        container.add((short) 5444);
+        container.add((short) 13444);
 
         System.out.println(container.contain((short) 5));
         System.out.println(container.contain((short) 67));
         System.out.println(container.contain((short) 627));
+
+        System.out.println(System.nanoTime() - start);
+
+        DynScaleBitmapContainer container2 = new DynScaleBitmapContainer();
+
+        start = System.nanoTime();
+        container2.add((short) 67);
+        container2.add((short) 5);
+
+        System.out.println(container2.contain((short) 5));
+        System.out.println(container2.contain((short) 67));
+        System.out.println(container2.contain((short) 627));
+
+        System.out.println(System.nanoTime() - start);
 
     }
 }
