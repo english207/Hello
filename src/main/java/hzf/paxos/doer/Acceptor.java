@@ -1,10 +1,10 @@
 package hzf.paxos.doer;
 
-import com.zhangq.paxos.bean.AcceptorStatus;
-import com.zhangq.paxos.bean.CommitResult;
-import com.zhangq.paxos.bean.PrepareResult;
-import com.zhangq.paxos.bean.Proposal;
-import com.zhangq.paxos.util.PaxosUtil;
+import hzf.paxos.bean.AcceptorStatus;
+import hzf.paxos.bean.CommitResult;
+import hzf.paxos.bean.PrepareResult;
+import hzf.paxos.bean.Proposal;
+import hzf.paxos.util.PaxosUtil;
 
 /**
  * 决策者

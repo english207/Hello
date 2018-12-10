@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.zhangq.paxos.bean.AcceptorStatus;
-import com.zhangq.paxos.bean.CommitResult;
-import com.zhangq.paxos.bean.PrepareResult;
-import com.zhangq.paxos.bean.Proposal;
-import com.zhangq.paxos.main.Main;
-import com.zhangq.paxos.util.PaxosUtil;
-import com.zhangq.paxos.util.PerformanceRecord;
+import hzf.paxos.bean.AcceptorStatus;
+import hzf.paxos.bean.CommitResult;
+import hzf.paxos.bean.PrepareResult;
+import hzf.paxos.bean.Proposal;
+import hzf.paxos.main.Main;
+import hzf.paxos.util.PaxosUtil;
+import hzf.paxos.util.PerformanceRecord;
 
 /**
  * 提议者
@@ -225,7 +225,7 @@ public class Proposer implements Runnable
 	//	计算决策者回复的每个已经被接受的提案计数
 	private Map<Proposal, Integer> countAcceptedProposalCount(List<Proposal> acceptedProposals)
 	{
-		Map<Proposal, Integer> proposalCount = new HashMap<>();
+		Map<Proposal, Integer> proposalCount = new HashMap<Proposal, Integer>();
 		for	(Proposal proposal : acceptedProposals)
 		{
 			//	决策者没有回复，或者网络异常

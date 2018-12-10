@@ -1,12 +1,13 @@
 package hzf.paxos.main;
 
+import hzf.paxos.doer.Acceptor;
+import hzf.paxos.doer.Proposer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import com.zhangq.paxos.doer.Acceptor;
-import com.zhangq.paxos.doer.Proposer;
 
 /**
  * 主函数 
@@ -21,7 +22,7 @@ public class Main
 	
 	public static void main(String[] args)
 	{
-		List<Acceptor> acceptors = new ArrayList<>();
+		List<Acceptor> acceptors = new ArrayList<Acceptor>();
 		for	(int i=0;i<NUM_OF_ACCEPTOR;i++)
 		{
 			acceptors.add(new Acceptor());
