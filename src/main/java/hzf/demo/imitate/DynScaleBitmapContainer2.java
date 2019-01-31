@@ -10,13 +10,13 @@ import java.util.concurrent.LinkedBlockingQueue;
  *
  *      动态伸缩bitmap
  */
-public class DynScaleBitmapContainer extends Container
+public class DynScaleBitmapContainer2 extends Container
 {
     private long[] keys = null;
     private long[] array = null;     // 1024个
     private int cardinality = 0;
 
-    public DynScaleBitmapContainer() {
+    public DynScaleBitmapContainer2() {
     }
 
     @Override
@@ -33,6 +33,9 @@ public class DynScaleBitmapContainer extends Container
         array[idx] = nval;
         cardinality += (p ^ nval) >>> x;
 
+        if (nval == -1) {
+
+        }
         return this;
     }
 
@@ -206,36 +209,36 @@ public class DynScaleBitmapContainer extends Container
         return size + 4;
     }
 
-    private Container checkIsEmpty(DynScaleBitmapContainer dsbc, int op)
+    private Container checkIsEmpty(DynScaleBitmapContainer2 dsbc, int op)
     {
-        DynScaleBitmapContainer newContainer = null;
+        DynScaleBitmapContainer2 newContainer = null;
         if (this.keys == null)
         {
             if (op == 1)       // or
             {
                 if (dsbc.keys != null)
                 {
-                    newContainer = new DynScaleBitmapContainer();
+                    newContainer = new DynScaleBitmapContainer2();
                     newContainer.keys = dsbc.keys.clone();
                     newContainer.array = dsbc.array.clone();
                 }
             }
             else if (op == 2)       // andNot
             {
-                newContainer = new DynScaleBitmapContainer();
+                newContainer = new DynScaleBitmapContainer2();
             }
         }
         else if (dsbc.keys == null)
         {
             if (op == 1)       // or
             {
-                newContainer = new DynScaleBitmapContainer();
+                newContainer = new DynScaleBitmapContainer2();
                 newContainer.keys = this.keys.clone();
                 newContainer.array = this.array.clone();
             }
             else if (op == 2)       // andNot
             {
-                newContainer = new DynScaleBitmapContainer();
+                newContainer = new DynScaleBitmapContainer2();
                 newContainer.keys = this.keys.clone();
                 newContainer.array = this.array.clone();
             }
@@ -246,8 +249,8 @@ public class DynScaleBitmapContainer extends Container
     @Override
     public Container and(Container x)
     {
-        DynScaleBitmapContainer dsbc = (DynScaleBitmapContainer) x;
-        DynScaleBitmapContainer newDsbc = (DynScaleBitmapContainer) checkIsEmpty(dsbc, 0);
+        DynScaleBitmapContainer2 dsbc = (DynScaleBitmapContainer2) x;
+        DynScaleBitmapContainer2 newDsbc = (DynScaleBitmapContainer2) checkIsEmpty(dsbc, 0);
         if ( newDsbc != null) {
             return newDsbc;
         }
@@ -319,7 +322,7 @@ public class DynScaleBitmapContainer extends Container
             }
         }
 
-        newDsbc = new DynScaleBitmapContainer();
+        newDsbc = new DynScaleBitmapContainer2();
         if (idx > 0)
         {
             long[] newArrayTmp = new long[idx];
@@ -334,8 +337,8 @@ public class DynScaleBitmapContainer extends Container
     @Override
     public Container or(Container x)
     {
-        DynScaleBitmapContainer dsbc = (DynScaleBitmapContainer) x;
-        DynScaleBitmapContainer newDsbc = (DynScaleBitmapContainer) checkIsEmpty(dsbc, 1);
+        DynScaleBitmapContainer2 dsbc = (DynScaleBitmapContainer2) x;
+        DynScaleBitmapContainer2 newDsbc = (DynScaleBitmapContainer2) checkIsEmpty(dsbc, 1);
         if ( newDsbc != null) {
             return newDsbc;
         }
@@ -406,7 +409,7 @@ public class DynScaleBitmapContainer extends Container
             }
         }
 
-        newDsbc = new DynScaleBitmapContainer();
+        newDsbc = new DynScaleBitmapContainer2();
         if (idx > 0)
         {
             long[] newArrayTmp = new long[idx];
@@ -421,8 +424,8 @@ public class DynScaleBitmapContainer extends Container
     @Override
     public Container andNot(Container x)
     {
-        DynScaleBitmapContainer dsbc = (DynScaleBitmapContainer) x;
-        DynScaleBitmapContainer newDsbc = (DynScaleBitmapContainer) checkIsEmpty(dsbc, 2);
+        DynScaleBitmapContainer2 dsbc = (DynScaleBitmapContainer2) x;
+        DynScaleBitmapContainer2 newDsbc = (DynScaleBitmapContainer2) checkIsEmpty(dsbc, 2);
         if ( newDsbc != null) {
             return newDsbc;
         }
@@ -515,7 +518,7 @@ public class DynScaleBitmapContainer extends Container
         }
 
         newCardinality = (short) low_size;
-        newDsbc = new DynScaleBitmapContainer();
+        newDsbc = new DynScaleBitmapContainer2();
         if (low_size > 0)
         {
             long[] newArrayTmp = new long[low_size];
@@ -656,7 +659,7 @@ public class DynScaleBitmapContainer extends Container
     public static void main(String[] args)
     {
         long start = System.currentTimeMillis();
-        DynScaleBitmapContainer container = new DynScaleBitmapContainer();
+        DynScaleBitmapContainer2 container = new DynScaleBitmapContainer2();
         container.add((short) 3);
         container.add((short) 4);
         container.add((short) 6844);

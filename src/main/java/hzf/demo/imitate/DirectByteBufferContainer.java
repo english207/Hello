@@ -18,7 +18,7 @@ public class DirectByteBufferContainer extends Container
     private int cardinality = 0;
 
     @Override
-    public void add(short x)
+    public Container add(short x)
     {
         if (buffer == null) {
             buffer = ByteBuffer.allocateDirect((32 + 4) * 8);
@@ -32,6 +32,7 @@ public class DirectByteBufferContainer extends Container
         long nval = p | 1l << (unsigned % 64);
         array_update(idx, nval);
         cardinality += (p ^ nval) >>> x;
+        return this;
     }
 
     private long keys(int idx)
@@ -128,8 +129,10 @@ public class DirectByteBufferContainer extends Container
                 newBuffer.putLong(pos, 0);
                 newBuffer.put(buffer2);
 
-                this.buffer = newBuffer.put(buffer);
+                ByteBuffer old = this.buffer;
+                this.buffer = newBuffer;
                 this.buffer.flip();
+                clean(old);
             }
             else
             {
@@ -142,7 +145,6 @@ public class DirectByteBufferContainer extends Container
                 this.buffer.putLong(low, 0);
 
             }
-
         }
     }
 
@@ -162,8 +164,8 @@ public class DirectByteBufferContainer extends Container
     }
 
     @Override
-    public void remove(short x) {
-
+    public Container remove(short x) {
+        return null;
     }
 
     @Override
@@ -233,34 +235,50 @@ public class DirectByteBufferContainer extends Container
         ((DirectBuffer)byteBuffer).cleaner().clean();
     }
 
+//    @Override
+//    protected void finalize() throws Throwable {
+//        super.finalize();
+//        clean(buffer);
+//    }
+
     public static void main(String[] args)
     {
-        DirectByteBufferContainer container = new DirectByteBufferContainer();
+        for (int i = 0; i < 100; i++) {
+            DirectByteBufferContainer container = new DirectByteBufferContainer();
 
-        long start = System.nanoTime();
-        container.add((short) 67);
-        container.add((short) 5);
-        container.add((short) 544);
-        container.add((short) 5444);
-        container.add((short) 13444);
+            long start = System.nanoTime();
+            container.add((short) 67);
+            container.add((short) 5);
+            container.add((short) 544);
+            container.add((short) 5444);
+            container.add((short) 38388);
 
-        System.out.println(container.contain((short) 5));
-        System.out.println(container.contain((short) 67));
-        System.out.println(container.contain((short) 627));
+            System.out.println(container.contain((short) 5));
+            System.out.println(container.contain((short) 67));
+            System.out.println(container.contain((short) 627));
 
-        System.out.println(System.nanoTime() - start);
+            System.out.println(System.nanoTime() - start);
 
-        DynScaleBitmapContainer container2 = new DynScaleBitmapContainer();
+            DynScaleBitmapContainer container2 = new DynScaleBitmapContainer();
 
-        start = System.nanoTime();
-        container2.add((short) 67);
-        container2.add((short) 5);
+            start = System.nanoTime();
+            container2.add((short) 67);
+            container2.add((short) 5);
 
-        System.out.println(container2.contain((short) 5));
-        System.out.println(container2.contain((short) 67));
-        System.out.println(container2.contain((short) 627));
+            System.out.println(container2.contain((short) 5));
+            System.out.println(container2.contain((short) 67));
+            System.out.println(container2.contain((short) 627));
 
-        System.out.println(System.nanoTime() - start);
+            System.out.println(System.nanoTime() - start);
+        }
+
+        try
+        {
+            Thread.sleep(1000);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+
+        System.gc();
 
     }
 }

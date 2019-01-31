@@ -6,8 +6,8 @@ package hzf.demo.bitmap;
  */
 public abstract class Container
 {
-    public abstract void add(final byte x);
-    public abstract boolean contain(final byte x);
+    public abstract Container add(final short x);
+    public abstract boolean contain(final short x);
 
     protected static short highbits(int x) {
         return (short) (x >>> 16);

@@ -25,7 +25,7 @@ public class FileBitmap2 extends Container
     }
 
     @Override
-    public void add(short x)
+    public Container add(short x)
     {
         int unsigned = toIntUnsigned(x);
         int idx = unsigned >> 6;
@@ -33,11 +33,13 @@ public class FileBitmap2 extends Container
         long nval = p | 1l << (unsigned % 64);
         putData(idx, nval);
         cardinality += (p ^ nval) >>> x;
+
+        return this;
     }
 
     @Override
-    public void remove(short x) {
-
+    public Container remove(short x) {
+        return null;
     }
 
     @Override

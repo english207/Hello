@@ -1,46 +1,44 @@
 package hzf.demo;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import org.roaringbitmap.ArrayContainer;
+import org.roaringbitmap.Container;
+
+import java.util.BitSet;
 
 /**
- * Created by WTO on 2016/10/19 0019.
+ * Created by huangzhenfeng on 2018/6/15.
+ *
  */
 public class Test
 {
-    public String name  = "";
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return this.hashCode() == obj.hashCode();
-    }
-
     public static void main(String[] args) {
-        Test a = new Test();
-        Test b = new Test();
 
-        a.name = "1";
-        b.name = "1";
+        Container arrayContainer = new ArrayContainer();
+        Container arrayContainer2 = new ArrayContainer();
 
-        System.out.println(a.hashCode());
-        System.out.println(b.hashCode());
+        BitSet bitSet = new BitSet();
+        BitSet bitSet2 = new BitSet();
 
-        System.out.println(a.equals(b));
+        for (int i = 2568; i < 8908; i++) {
+            arrayContainer = arrayContainer2.add((short) i);
+            bitSet2.set(i);
+        }
 
-        BitSet bitSet = new BitSet(10);
-        bitSet.set(1);
-        bitSet.get(1);
+        for (int i = 0; i < 3568; i++) {
+            arrayContainer = arrayContainer.add((short) i);
+            bitSet.set(i);
+        }
+
+        Container arrayContainer3 = arrayContainer.or(arrayContainer2);
+        bitSet.or(bitSet2);
+
+        System.out.println(arrayContainer3.toString());
+        System.out.println(bitSet.toString());
+
+        System.out.println(arrayContainer3.getCardinality());
+        System.out.println(bitSet.cardinality());
+
 
     }
-
 }
